@@ -11,7 +11,9 @@
 #define _AHRS_HAL_H_
 
 #include <stdint.h>
+#ifdef __WIN32__
 #include <math.h>
+#endif
 #include <stddef.h>
 
 #define AHRS_PI (float)3.1415926535

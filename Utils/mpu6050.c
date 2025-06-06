@@ -235,4 +235,4 @@ double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double
     Kalman->P[1][1] -= K[1] * P01_temp;
 
     return Kalman->angle;
-};
+}
