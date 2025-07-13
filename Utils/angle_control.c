@@ -34,10 +34,6 @@ void AngleControl_Enable(void)
 {
     angle_control.enabled = 1;
     angle_control.mode = ANGLE_CONTROL_YAW;
-    
-    /* 重置PID状态 */
-    AnglePID_Reset();
-    
     /* 启用角度控制 */
     angle_pid_yaw.enabled = 1;
     pid_control_state.angle_control_active = 1;
@@ -64,13 +60,6 @@ void AngleControl_Disable(void)
  */
 void AngleControl_SelfTurnTarget(float target_yaw)
 {
-    
-    /* 如果当前是禁用状态，自动启用 */
-    if (angle_control.mode == ANGLE_CONTROL_DISABLED)
-    {
-        AngleControl_Enable();
-    }
-    
     /* 设置为原地转向模式 */
     PID_SetTurnInPlace(target_yaw);
 }

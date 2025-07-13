@@ -321,8 +321,40 @@ void AnglePID_Init(void)
     angle_pid_yaw.output_max = ANGLE_PID_OUTPUT_MAX;
 
     /* 设置默认参数 */
-    angle_pid_yaw.enabled = 0;
+    angle_pid_yaw.enabled = 1;
     angle_pid_yaw.sensitivity = 1.0f;
+    angle_pid_yaw.angle_mode = PID_MODE_MANUAL;
+}
+
+/**
+ * @brief 初始化角度环PID控制器
+ * @retval None
+ */
+void Angle_Self_PID_Set(void)
+{
+    /* 初始化PID参数 */
+    angle_pid_yaw.Kp = ANGLE_SELF_KP;
+    angle_pid_yaw.Ki = ANGLE_SELF_KI;
+    angle_pid_yaw.Kd = ANGLE_SELF_KD;
+
+    /* 重置PID状态 */
+    angle_pid_yaw.setpoint = 0.0f;
+    angle_pid_yaw.feedback = 0.0f;
+    angle_pid_yaw.error = 0.0f;
+    angle_pid_yaw.last_error = 0.0f;
+    angle_pid_yaw.integral = 0.0f;
+    angle_pid_yaw.derivative = 0.0f;
+    angle_pid_yaw.output = 0.0f;
+    angle_pid_yaw.final_output = 0.0f;
+
+    /* 设置输出限制 */
+    angle_pid_yaw.output_min = ANGLE_SELF_OUTPUT_MIN;
+    angle_pid_yaw.output_max = ANGLE_SELF_OUTPUT_MAX;
+
+    /* 设置默认参数 */
+    angle_pid_yaw.enabled = 1;
+    angle_pid_yaw.sensitivity = 1.0f;
+    angle_pid_yaw.angle_mode = PID_MODE_MANUAL;
 }
 
 /**
@@ -379,44 +411,45 @@ void AnglePID_Update(void)
     float yaw_output;
     float motor_a_speed, motor_b_speed;
 
-    /* 如果角度控制未激活，则直接返回 */
-    if (!angle_pid_yaw.enabled || !pid_control_state.angle_control_active)
-    {
-        return;
-    }
-
     /* 更新反馈值 */
     angle_pid_yaw.feedback = Yaw;
 
-    /* 计算PID输出 */
-    yaw_output = AnglePID_Compute();
+    float angle_error = Angle_Difference(angle_pid_yaw.setpoint, angle_pid_yaw.feedback);
 
-    /* 根据控制模式选择输出策略 */
-    switch (pid_control_state.mode)
+    if (fabsf(angle_error) <= DEAD_ZONE)
     {
-    case PID_MODE_STRAIGHT_DRIVE:
-        /* 直行模式：基础速度 + 偏航修正 */
-        motor_a_speed = pid_control_state.base_speed + yaw_output;
-        motor_b_speed = pid_control_state.base_speed - yaw_output;
-        break;
-
-    case PID_MODE_TURN_IN_PLACE:
-        /* 原地转向模式：纯差速，无基础速度 */
-        motor_a_speed = yaw_output;
-        motor_b_speed = -yaw_output;
-        break;
-
-    default:
-        /* 其他模式或兼容旧代码：纯差速 */
-        motor_a_speed = yaw_output;
-        motor_b_speed = -yaw_output;
-        break;
+        /* 在死区内：强制置零积分项和偏差项，不计算PID */
+        angle_pid_yaw.integral = 0.0f;
+        angle_pid_yaw.error = 0.0f;
+        angle_pid_yaw.last_error = 0.0f;
+        angle_pid_yaw.derivative = 0.0f;
+        yaw_output = 0.0f;
     }
-
-    /* 设置电机目标速度，让底层PID根据正负自动确定方向 */
-    angle_pid_yaw.final_output = motor_a_speed; // 保存最终输出值
-    PID_SetSpeed(PID_MOTOR_A, motor_a_speed);
-    PID_SetSpeed(PID_MOTOR_B, motor_b_speed);
+    else
+    {
+        if (angle_pid_yaw.angle_mode == PID_MODE_STRAIGHT_DRIVE)
+        {
+            yaw_output = AnglePID_Compute();
+            /* 直行模式：基础速度 + 偏航修正 */
+            motor_a_speed = pid_control_state.base_speed + yaw_output;
+            motor_b_speed = pid_control_state.base_speed - yaw_output;
+            /* 设置电机目标速度，让底层PID根据正负自动确定方向 */
+            angle_pid_yaw.final_output = motor_a_speed; // 保存最终输出值
+            PID_SetSpeed(PID_MOTOR_A, motor_a_speed);
+            PID_SetSpeed(PID_MOTOR_B, motor_b_speed);
+        }
+        else if (angle_pid_yaw.angle_mode == PID_MODE_TURN_IN_PLACE)
+        {
+            yaw_output = AnglePID_Compute();
+            /* 原地转向模式：偏航修正直接作为差速 */
+            motor_a_speed = yaw_output; // 右轮
+            motor_b_speed = -yaw_output; // 左轮
+            /* 设置电机目标速度，让底层PID根据正负自动确定方向 */
+            angle_pid_yaw.final_output = yaw_output; // 保存最终输出值
+            Motor_SetSpeed(PID_MOTOR_A, motor_a_speed, (motor_a_speed >= 0) ? MOTOR_FORWARD : MOTOR_BACKWARD);
+            Motor_SetSpeed(PID_MOTOR_B, motor_b_speed, (motor_b_speed >= 0) ? MOTOR_FORWARD : MOTOR_BACKWARD);
+        }
+    }
 }
 
 /**
@@ -452,10 +485,12 @@ void PID_SetStraightDrive(float target_speed, float target_yaw)
 {
     /* 更新控制状态 */
     pid_control_state.mode = PID_MODE_STRAIGHT_DRIVE;
+    angle_pid_yaw.angle_mode = PID_MODE_STRAIGHT_DRIVE; // 设置角度模式为直行驱动
     pid_control_state.base_speed = target_speed;
     pid_control_state.target_yaw = target_yaw;
     pid_control_state.angle_control_active = 1;
 
+    AnglePID_Init(); // 使用默认配置
     /* 启用角度PID并设置目标值 */
     angle_pid_yaw.enabled = 1;
     AnglePID_SetTarget(target_yaw);
@@ -473,10 +508,12 @@ void PID_SetTurnInPlace(float target_yaw)
 {
     /* 更新控制状态 */
     pid_control_state.mode = PID_MODE_TURN_IN_PLACE;
-    pid_control_state.base_speed = 0.0f; // 原地转向，基础速度为0
+    angle_pid_yaw.angle_mode = PID_MODE_TURN_IN_PLACE; // 设置角度模式为原地转向
+    pid_control_state.base_speed = 0.0f;               // 原地转向，基础速度为0
     pid_control_state.target_yaw = target_yaw;
     pid_control_state.angle_control_active = 1;
 
+    Angle_Self_PID_Set();
     /* 启用角度PID并设置目标值 */
     angle_pid_yaw.enabled = 1;
     AnglePID_SetTarget(target_yaw);

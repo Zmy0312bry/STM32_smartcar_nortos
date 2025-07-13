@@ -167,7 +167,7 @@ int main(void)
   while (1)
   {
     /* This is the space for you to declare temp variables */
-    int times = 5;
+    int times =2;
     /* This is the end */
 
     /* This is the call to the gyroscope code function */
@@ -202,18 +202,18 @@ int main(void)
 
     /* This is the function to print encoder data */
 
-    if (encoder_sample == 49)
+    if (encoder_sample == 99)
     {
-      if (times == 5)
+      if (times == 2)
       {
         AnglePID_Update();
         times = 0;
       }
-      Encoder_Update(&encoderA, 50); // Put into the sample time(ms)
-      Encoder_Update(&encoderB, 50);
+      Encoder_Update(&encoderA, 100); // Put into the sample time(ms)
+      Encoder_Update(&encoderB, 100);
       PID_Update();
       printf("EncoderA:%.2f,", encoderA.speed_rpm);
-      printf("EncoderB:%.2f(%.2f)\r\n", encoderB.speed_rpm);
+      printf("EncoderB:%.2f,", encoderB.speed_rpm);
       printf("Yaw:%.2f,Target:%.2f,", Yaw, angle_pid_yaw.setpoint);
       printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
       times++;
@@ -293,7 +293,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
       gyro_sample++;
     }
-    if (encoder_sample < 49)
+    if (encoder_sample < 99)
     {
       encoder_sample++;
     }
