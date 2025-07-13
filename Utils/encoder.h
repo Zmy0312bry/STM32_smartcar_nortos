@@ -11,9 +11,9 @@ extern "C"
 
 /* 编码器相关宏定义 */
 #define ENCODER_TIM_PERIOD 65535 // 编码器定时器计数周期
-#define ENCODER_RESOLUTION 13    // 编码器分辨率(线数)
-#define GEAR_RATIO 34            // 电机减速比
-#define SAMPLE_TIME_MS 200       // 采样时间(ms) 可能没用了
+#define ENCODER_RESOLUTION 11    // 编码器分辨率(线数)
+#define GEAR_RATIO 20.41f            // 电机减速比
+
 
     /* 编码器枚举 */
     typedef enum
@@ -34,7 +34,7 @@ extern "C"
         Encoder_ID id;           // 编码器ID: 0-ENCODER_A, 1-ENCODER_B
         TIM_HandleTypeDef *htim; // 定时器句柄
         uint8_t resolution;      // 编码器分辨率
-        uint8_t gear_ratio;      // 减速比
+        float gear_ratio;      // 减速比
     } Encoder_TypeDef;
 
     /* 函数声明 */

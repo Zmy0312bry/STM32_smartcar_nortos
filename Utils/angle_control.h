@@ -30,9 +30,9 @@ typedef struct
 void AngleControl_Init(void);
 void AngleControl_Enable(void);
 void AngleControl_Disable(void);
-void AngleControl_SetTarget(float target_yaw);
 void AngleControl_SetSensitivity(float yaw_sensitivity);
 void AngleControl_Reset(void);
+void AngleControl_SelfTurnTarget(float target_yaw);
 AngleControl_TypeDef* AngleControl_GetStatus(void);
 
 /* 便捷接口函数声明 */

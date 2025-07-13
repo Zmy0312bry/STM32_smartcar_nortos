@@ -95,9 +95,9 @@ void SystemClock_Config(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -149,12 +149,15 @@ int main(void)
   /* Init the PID control here */
   PID_Init(&pid_motor_a);
   PID_Init(&pid_motor_b);
-  PID_SetSpeed(PID_MOTOR_A, 100.0f); // Set initial speed for motor A
-  PID_SetSpeed(PID_MOTOR_B, 100.0f);
+  
+  /* 测试正负速度控制 */
+  //PID_SetSpeed(PID_MOTOR_A, 20.0f);
+  //PID_SetSpeed(PID_MOTOR_B, -40.0f);  // 电机B反转30RPM
   /* Finish init PID control */
 
   /* Init the Yaw Angle PID control here */
   AngleControl_Init();
+  AngleControl_SelfTurnTarget(90.0f); // Set initial target angle for Yaw
   /* Finish init Yaw Angle PID control */
 
   /* USER CODE END 2 */
@@ -163,13 +166,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* This is the call to the gyroscope code function */
+    /* This is the space for you to declare temp variables */
+    int times = 5;
+    /* This is the end */
 
+    /* This is the call to the gyroscope code function */
     if (gyro_sample >= 99) // This means that the gyroscope data is read every 100ms
     {
-      // printf("Roll:%6.2f\r\n", Roll);
-      // printf("Pitch:%6.2f\r\n", Pitch);
-      // printf("Yaw:%6.2f\r\n", Yaw);
       gyro_sample = 0; // Reset the sample counter
     }
 
@@ -199,54 +202,55 @@ int main(void)
 
     /* This is the function to print encoder data */
 
-    if (encoder_sample >= 19)
+    if (encoder_sample == 49)
     {
-      Encoder_Update(&encoderA, encoder_sample + 1); // Put into the sample time(ms)
-      Encoder_Update(&encoderB, encoder_sample + 1);
-
+      if (times == 5)
+      {
+        AnglePID_Update();
+        times = 0;
+      }
+      Encoder_Update(&encoderA, 50); // Put into the sample time(ms)
+      Encoder_Update(&encoderB, 50);
       PID_Update();
-      // 打印编码器数�?
-      printf("EncoderA:%0.2f,", encoderA.speed_rpm);
-      printf("EncoderB:%0.2f\r\n", encoderB.speed_rpm);
-      encoder_sample = 0;
+      printf("EncoderA:%.2f,", encoderA.speed_rpm);
+      printf("EncoderB:%.2f(%.2f)\r\n", encoderB.speed_rpm);
+      printf("Yaw:%.2f,Target:%.2f,", Yaw, angle_pid_yaw.setpoint);
+      printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
+      times++;
     }
 
     /* This is the end of encoder print function */
 
+    /* This is angle pid ring code */
+
+    if (angle_pid_sample >= 49) // Update angle PID every 20ms (50Hz)
+    {
+      angle_pid_sample = 0; // Reset the sample counter
+    }
+
+    /* This the end of ring control */
     /* This is the space for you to pile up your test code */
-    // if (pid_temp % 14999 == 0)
-    // {
-    //   static float test_speeds[] = {0, 50, 100, -50, -100};
-    //   static uint8_t speed_index = 0;
-
-    //   float target_speed = test_speeds[speed_index];
-    //   PID_SetSpeed(PID_MOTOR_A, target_speed);
-    //   PID_SetSpeed(PID_MOTOR_B, target_speed);
-
-    //   speed_index = (speed_index + 1) % 5;
-    //   pid_temp = 0; // Reset temp counter
-    // }
     /* This is the end of your garbage space */
   }
-    /* USER CODE END WHILE */
+  /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+  /* USER CODE BEGIN 3 */
 
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -260,9 +264,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -290,13 +293,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
       gyro_sample++;
     }
-    if (encoder_sample < 19)
+    if (encoder_sample < 49)
     {
       encoder_sample++;
     }
-    if (angle_pid_sample < 19) // Update angle PID every 20ms (50Hz)
+    if (angle_pid_sample < 99) // Update angle PID every 20ms (50Hz)
     {
-      angle_pid_sample = 0;
+      angle_pid_sample++;
     }
     /* This is the space for your temp variables */
     if (pid_temp < 15000)
@@ -311,9 +314,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -325,14 +328,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

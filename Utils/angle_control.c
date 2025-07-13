@@ -17,13 +17,13 @@ void AngleControl_Init(void)
     angle_control.enabled = 0;
     angle_control.target_yaw = 0.0f;
     angle_control.current_yaw = 0.0f;
-    angle_control.yaw_sensitivity = 1.0f;
+    angle_control.yaw_sensitivity = 5.0f;
     
     /* 初始化角度PID控制器 */
-    Angle_PID_Init();
-    
+    AnglePID_Init();
+    AngleControl_Enable();
     /* 设置初始目标值 */
-    Angle_PID_SetTarget(ANGLE_YAW, 0.0f);
+    AnglePID_SetTarget(0.0f);
 }
 
 /**
@@ -36,13 +36,10 @@ void AngleControl_Enable(void)
     angle_control.mode = ANGLE_CONTROL_YAW;
     
     /* 重置PID状态 */
-    Angle_PID_Reset(ANGLE_YAW);
-    
-    /* 设置当前角度为目标，避免突然转动 */
-    angle_control.target_yaw = Yaw;
-    Angle_PID_SetTarget(ANGLE_YAW, Yaw);
+    AnglePID_Reset();
     
     /* 启用角度控制 */
+    angle_pid_yaw.enabled = 1;
     pid_control_state.angle_control_active = 1;
 }
 
@@ -55,8 +52,9 @@ void AngleControl_Disable(void)
     angle_control.enabled = 0;
     angle_control.mode = ANGLE_CONTROL_DISABLED;
     
-    /* 重置PID状态 */
-    Angle_PID_Reset(ANGLE_YAW);
+    /* 禁用并重置PID状态 */
+    angle_pid_yaw.enabled = 0;
+    AnglePID_Reset();
 }
 
 /**
@@ -64,12 +62,8 @@ void AngleControl_Disable(void)
  * @param target_yaw: 目标Yaw角度(度)
  * @retval None
  */
-void AngleControl_SetTarget(float target_yaw)
+void AngleControl_SelfTurnTarget(float target_yaw)
 {
-    angle_control.target_yaw = target_yaw;
-    
-    /* 设置PID目标值 */
-    Angle_PID_SetTarget(ANGLE_YAW, target_yaw);
     
     /* 如果当前是禁用状态，自动启用 */
     if (angle_control.mode == ANGLE_CONTROL_DISABLED)
@@ -95,9 +89,7 @@ void AngleControl_SetSensitivity(float yaw_sensitivity)
     angle_control.yaw_sensitivity = yaw_sensitivity;
     
     /* 动态调整PID参数 */
-    angle_pid_kp = ANGLE_PID_KP * yaw_sensitivity;
-    angle_pid_ki = ANGLE_PID_KI * yaw_sensitivity;
-    angle_pid_kd = ANGLE_PID_KD * yaw_sensitivity;
+    AnglePID_SetSensitivity(yaw_sensitivity);
 }
 
 /**
@@ -111,10 +103,10 @@ void AngleControl_Reset(void)
     angle_control.current_yaw = Yaw;
     
     /* 更新PID目标值 */
-    Angle_PID_SetTarget(ANGLE_YAW, Yaw);
+    AnglePID_SetTarget(Yaw);
     
     /* 重置PID状态 */
-    Angle_PID_Reset(ANGLE_YAW);
+    AnglePID_Reset();
 }
 
 /**

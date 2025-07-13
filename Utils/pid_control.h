@@ -34,23 +34,45 @@ extern "C"
 
 /* PID控制器参数（可调整） */
 // 为电机A和B分别定义PID参数
-#define PID_KP_A 0.9f  // 电机A比例系数默认值
-#define PID_KI_A 0.45f // 电机A积分系数默认值
-#define PID_KD_A 0.6f  // 电机A微分系数默认值
+#define PID_KP_A 0.5f  // 电机A比例系数默认值
+#define PID_KI_A 0.1f // 电机A积分系数默认值
+#define PID_KD_A 0.2f  // 电机A微分系数默认值
 
-#define PID_KP_B 2.0f          // 电机B比例系数默认值
-#define PID_KI_B 1.4f          // 电机B积分系数默认值
-#define PID_KD_B 1.0f          // 电机B微分系数默认值
+#define PID_KP_B 0.5f          // 电机B比例系数默认值  纯速度为2.0
+#define PID_KI_B 0.1f          // 电机B积分系数默认值   1.4
+#define PID_KD_B 0.2f          // 电机B微分系数默认值   1.0
 #define PID_OUTPUT_MAX 999.0f  // 输出最大值（对应PWM最大值）
-#define PID_OUTPUT_MIN 0.0f    // 输出最小值
-#define PID_SAMPLE_TIME 100.0f // PID采样时间(ms)，应与编码器采样时间一致
+#define PID_OUTPUT_MIN -999.0f    // 输出最小值
 
 /* 角度环PID控制器参数 */
-#define ANGLE_PID_KP 5.0f       // 角度环比例系数默认值
-#define ANGLE_PID_KI 0.2f       // 角度环积分系数默认值  
-#define ANGLE_PID_KD 2.0f       // 角度环微分系数默认值
-#define ANGLE_PID_OUTPUT_MAX 200.0f // 角度环输出最大值(RPM)
-#define ANGLE_PID_OUTPUT_MIN -200.0f // 角度环输出最小值(RPM)
+#define ANGLE_PID_KP 0.2f       // 角度环比例系数默认值
+#define ANGLE_PID_KI 0.05f       // 角度环积分系数默认值  
+#define ANGLE_PID_KD 0.1f       // 角度环微分系数默认值
+#define ANGLE_PID_OUTPUT_MAX 30.0f // 角度环输出最大值(RPM)
+#define ANGLE_PID_OUTPUT_MIN -30.0f // 角度环输出最小值(RPM)
+
+/* 角度PID控制器专用结构体 */
+typedef struct
+{
+    float Kp; // 比例系数
+    float Ki; // 积分系数
+    float Kd; // 微分系数
+
+    float setpoint;   // 设定值（目标角度）
+    float feedback;   // 反馈值（当前角度）
+    float error;      // 当前误差
+    float last_error; // 上次误差
+    float integral;   // 积分项
+    float derivative; // 微分项
+
+    float output;     // PID输出(RPM)
+    float output_min; // 输出下限
+    float output_max; // 输出上限
+    float final_output; // 最终输出
+    
+    uint8_t enabled;  // 是否启用
+    float sensitivity; // 控制灵敏度
+} AnglePID_TypeDef;
 
     /* 电机PID控制器枚举 */
     typedef enum
@@ -72,13 +94,12 @@ extern "C"
     void PID_Update(void);
     
     /* 角度环PID控制函数声明 */
-    void Angle_PID_Init(void);
-    void Angle_PID_SetTarget(PID_Angle_Axis axis, float target_angle);
-    void Angle_PID_Update(void);
-    void Angle_PID_Reset(PID_Angle_Axis axis);
-    
-    /* 简化的Yaw控制接口 */
-    void YawControl_SetTarget(float target_yaw);
+    void AnglePID_Init(void);
+    void AnglePID_SetTarget(float target_angle);
+    void AnglePID_Update(void);
+    void AnglePID_Reset(void);
+    void AnglePID_SetSensitivity(float sensitivity);
+    float AnglePID_Compute(void);
 
     /* 混合控制模式函数声明 */
     void PID_SetDifferentialSpeed(float base_speed, float yaw_correction);
@@ -107,7 +128,7 @@ extern "C"
     /* 外部变量声明 */
     extern PID_TypeDef pid_motor_a;
     extern PID_TypeDef pid_motor_b;
-    extern PID_TypeDef pid_angle_yaw;  // Yaw轴PID控制器
+    extern AnglePID_TypeDef angle_pid_yaw;  // Yaw轴角度PID控制器
     // 声明各自的全局调节参数
     extern float pid_kp_a;
     extern float pid_ki_a;
@@ -116,11 +137,6 @@ extern "C"
     extern float pid_kp_b;
     extern float pid_ki_b;
     extern float pid_kd_b;
-    
-    // 角度环PID参数
-    extern float angle_pid_kp;
-    extern float angle_pid_ki;  
-    extern float angle_pid_kd;
 
     extern PID_ControlState pid_control_state;
 
@@ -128,4 +144,4 @@ extern "C"
 }
 #endif
 
-#endif /* __PID_CONTROL_H */
+#endif /* __PID_CONTROL_H*/

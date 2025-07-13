@@ -94,22 +94,26 @@ void Encoder_Update(Encoder_TypeDef *encoder, uint32_t sample_time_ms)
         }
     }
 
-    // 判断方向
+    // 判断方向并保持原始符号
     if (encoder->diff > 0)
     {
         encoder->direction = 0; // 正转
     }
     else if (encoder->diff < 0)
     {
-        encoder->direction = 1;         // 反转
-        encoder->diff = -encoder->diff; // 取绝对值用于计算速度
+        encoder->direction = 1; // 反转
+        // 注意：这里不再取绝对值，保持负值
+    }
+    else
+    {
+        // diff == 0，保持上次方向
     }
 
     // 计算转速 (counts/sample_time => RPM)
-    // RPM = (diff * 60 * 1000) / (resolution * gear_ratio * sample_time_ms)
+    // 使用带符号的diff值，这样反转时RPM为负值
     encoder->speed_rpm = (float)encoder->diff * 60.0f * 1000.0f /
                          (encoder->resolution * encoder->gear_ratio * sample_time_ms);
 
-    // 计算RPS (RPM / 60)
+    // 计算RPS (RPM / 60)，同样保持符号
     encoder->speed_rps = encoder->speed_rpm / 60.0f;
 }
