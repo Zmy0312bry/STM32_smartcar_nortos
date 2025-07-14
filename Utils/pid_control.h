@@ -48,14 +48,14 @@ extern "C"
 #define ANGLE_PID_KP 0.01f       // 角度环比例系数默认值
 #define ANGLE_PID_KI 0.005f       // 角度环积分系数默认值  
 #define ANGLE_PID_KD 0.008f       // 角度环微分系数默认值
-#define ANGLE_SELF_KP 0.5f       // 角度环比例系数默认值
-#define ANGLE_SELF_KI 0.1f       // 角度环积分系数默认值  
-#define ANGLE_SELF_KD 0.3f       // 角度环微分系数默认值
+#define ANGLE_SELF_KP 0.4f       // 角度环比例系数默认值
+#define ANGLE_SELF_KI 0.05f       // 角度环积分系数默认值  
+#define ANGLE_SELF_KD 0.2f       // 角度环微分系数默认值
 #define DEAD_ZONE 3.0f // 角度环死区范围（度）
 #define ANGLE_PID_OUTPUT_MAX 10.0f // 角度环输出最大值(RPM)
 #define ANGLE_PID_OUTPUT_MIN -10.0f // 角度环输出最小值(RPM)
-#define ANGLE_SELF_OUTPUT_MAX 100.0f // 角度环输出最大值(RPM)
-#define ANGLE_SELF_OUTPUT_MIN -100.0f // 角度环输出最小值(RPM)
+#define ANGLE_SELF_OUTPUT_MAX 150.0f // 角度环输出最大值(RPM)
+#define ANGLE_SELF_OUTPUT_MIN -150.0f // 角度环输出最小值(RPM)
 
 /* 角度PID控制器专用结构体 */
 typedef struct

@@ -202,21 +202,17 @@ int main(void)
 
     /* This is the function to print encoder data */
 
-    if (encoder_sample == 99)
+    if (encoder_sample >= 69)
     {
-      if (times == 2)
-      {
-        AnglePID_Update();
-        times = 0;
-      }
-      Encoder_Update(&encoderA, 100); // Put into the sample time(ms)
-      Encoder_Update(&encoderB, 100);
-      PID_Update();
+
+      AnglePID_Update();
+      Encoder_Update(&encoderA, 70); // Put into the sample time(ms)
+      Encoder_Update(&encoderB, 70);
       printf("EncoderA:%.2f,", encoderA.speed_rpm);
       printf("EncoderB:%.2f,", encoderB.speed_rpm);
       printf("Yaw:%.2f,Target:%.2f,", Yaw, angle_pid_yaw.setpoint);
       printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
-      times++;
+      encoder_sample = 0; // Reset the sample counter
     }
 
     /* This is the end of encoder print function */

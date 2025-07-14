@@ -354,7 +354,6 @@ void Angle_Self_PID_Set(void)
     /* 设置默认参数 */
     angle_pid_yaw.enabled = 1;
     angle_pid_yaw.sensitivity = 1.0f;
-    angle_pid_yaw.angle_mode = PID_MODE_MANUAL;
 }
 
 /**
@@ -445,9 +444,9 @@ void AnglePID_Update(void)
             motor_a_speed = yaw_output; // 右轮
             motor_b_speed = -yaw_output; // 左轮
             /* 设置电机目标速度，让底层PID根据正负自动确定方向 */
-            angle_pid_yaw.final_output = yaw_output; // 保存最终输出值
-            Motor_SetSpeed(PID_MOTOR_A, motor_a_speed, (motor_a_speed >= 0) ? MOTOR_FORWARD : MOTOR_BACKWARD);
-            Motor_SetSpeed(PID_MOTOR_B, motor_b_speed, (motor_b_speed >= 0) ? MOTOR_FORWARD : MOTOR_BACKWARD);
+            angle_pid_yaw.final_output = fabs(yaw_output); // 保存最终输出值
+            Motor_SetSpeed(PID_MOTOR_A, angle_pid_yaw.final_output, (motor_a_speed >= 0) ? MOTOR_FORWARD : MOTOR_BACKWARD);
+            Motor_SetSpeed(PID_MOTOR_B, angle_pid_yaw.final_output, (motor_b_speed >= 0) ? MOTOR_FORWARD : MOTOR_BACKWARD);
         }
     }
 }
