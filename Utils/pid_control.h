@@ -48,7 +48,7 @@ extern "C"
 #define ANGLE_PID_KP 0.01f       // 角度环比例系数默认值
 #define ANGLE_PID_KI 0.005f       // 角度环积分系数默认值  
 #define ANGLE_PID_KD 0.008f       // 角度环微分系数默认值
-#define ANGLE_SELF_KP 0.4f       // 角度环比例系数默认值
+#define ANGLE_SELF_KP 0.8f       // 角度环比例系数默认值
 #define ANGLE_SELF_KI 0.05f       // 角度环积分系数默认值  
 #define ANGLE_SELF_KD 0.2f       // 角度环微分系数默认值
 #define DEAD_ZONE 3.0f // 角度环死区范围（度）

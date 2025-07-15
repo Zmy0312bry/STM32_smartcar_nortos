@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "jy61p.h"
+#include "icm42688.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,6 +76,8 @@ volatile uint8_t encoder_sample = 0; // How many seconds to read encoder data
 
 /* This is the declaration of the variables of angle PID control*/
 volatile uint8_t angle_pid_sample = 0; // How many ms to update angle PID
+icm42688RealData_t accval;
+icm42688RealData_t gyroval;
 /* This is the end of declaration to the angle PID*/
 
 /* This is the sapce for you to declare temp variables */
@@ -92,12 +95,11 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/* This is the space for some function for gyro */
+/* This is the end */
+
 /* USER CODE END 0 */
 
-/**
- * @brief  The application entry point.
- * @retval int
- */
 int main(void)
 {
 
@@ -149,16 +151,16 @@ int main(void)
   /* Init the PID control here */
   PID_Init(&pid_motor_a);
   PID_Init(&pid_motor_b);
-  
-  /* 测试正负速度控制 */
-  //PID_SetSpeed(PID_MOTOR_A, 20.0f);
-  //PID_SetSpeed(PID_MOTOR_B, -40.0f);  // 电机B反转30RPM
   /* Finish init PID control */
 
   /* Init the Yaw Angle PID control here */
   AngleControl_Init();
   AngleControl_SelfTurnTarget(90.0f); // Set initial target angle for Yaw
-  /* Finish init Yaw Angle PID control */
+                                      /* Finish init Yaw Angle PID control */
+
+  /* This is the init for icm42688 */
+  bsp_Icm42688Init();
+  /* This is the end */
 
   /* USER CODE END 2 */
 
@@ -167,12 +169,14 @@ int main(void)
   while (1)
   {
     /* This is the space for you to declare temp variables */
-    int times =2;
+    int times = 2;
     /* This is the end */
 
     /* This is the call to the gyroscope code function */
     if (gyro_sample >= 99) // This means that the gyroscope data is read every 100ms
     {
+      bsp_IcmGetRawData(&accval, &gyroval);
+      printf("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", accval.x, accval.y, accval.z, gyroval.x, gyroval.y, gyroval.z);
       gyro_sample = 0; // Reset the sample counter
     }
 
@@ -202,18 +206,18 @@ int main(void)
 
     /* This is the function to print encoder data */
 
-    if (encoder_sample >= 69)
-    {
+    // if (encoder_sample >= 69)
+    // {
 
-      AnglePID_Update();
-      Encoder_Update(&encoderA, 70); // Put into the sample time(ms)
-      Encoder_Update(&encoderB, 70);
-      printf("EncoderA:%.2f,", encoderA.speed_rpm);
-      printf("EncoderB:%.2f,", encoderB.speed_rpm);
-      printf("Yaw:%.2f,Target:%.2f,", Yaw, angle_pid_yaw.setpoint);
-      printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
-      encoder_sample = 0; // Reset the sample counter
-    }
+    //   AnglePID_Update();
+    //   Encoder_Update(&encoderA, 70); // Put into the sample time(ms)
+    //   Encoder_Update(&encoderB, 70);
+    //   printf("EncoderA:%.2f,", encoderA.speed_rpm);
+    //   printf("EncoderB:%.2f,", encoderB.speed_rpm);
+    //   printf("Yaw:%.2f,Target:%.2f,", Yaw, angle_pid_yaw.setpoint);
+    //   printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
+    //   encoder_sample = 0; // Reset the sample counter
+    // }
 
     /* This is the end of encoder print function */
 
