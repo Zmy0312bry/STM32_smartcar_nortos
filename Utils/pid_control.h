@@ -103,7 +103,7 @@ typedef struct
     /* 角度环PID控制函数声明 */
     void AnglePID_Init(void);
     void AnglePID_SetTarget(float target_angle);
-    void AnglePID_Update(void);
+    void AnglePID_Update(float my_yaw);
     void AnglePID_Reset(void);
     void AnglePID_SetSensitivity(float sensitivity);
     float AnglePID_Compute(void);

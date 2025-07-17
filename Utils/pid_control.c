@@ -405,13 +405,13 @@ void AnglePID_SetSensitivity(float sensitivity)
  * @note 此函数应在定时器中定期调用，建议调用频率与陀螺仪读取频率一致
  * @retval None
  */
-void AnglePID_Update(void)
+void AnglePID_Update(float my_yaw)
 {
     float yaw_output;
     float motor_a_speed, motor_b_speed;
 
     /* 更新反馈值 */
-    angle_pid_yaw.feedback = Yaw;
+    angle_pid_yaw.feedback = my_yaw;
 
     float angle_error = Angle_Difference(angle_pid_yaw.setpoint, angle_pid_yaw.feedback);
 

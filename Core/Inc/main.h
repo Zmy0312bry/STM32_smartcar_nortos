@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "mpu6050.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -53,7 +53,10 @@ extern uint8_t g_usart2_receivedata; // The data received from the USART2,also t
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+// 改为前向声明
+// struct MPU6050_t;
 
+extern MPU6050_t MPU6050;
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

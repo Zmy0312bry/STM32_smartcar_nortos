@@ -247,6 +247,11 @@ void MPU6050_Read_All(I2C_HandleTypeDef *I2Cx, MPU6050_t *DataStruct)
 
     // 更新结构体中的位移数据（如果需要）
     DataStruct->DisplacementX = displacementCalculator.displacementX;
+    
+    if (DataStruct->Gz > 0.8f || DataStruct->Gz < -0.8f)
+    {
+        DataStruct->Yaw_Custom += DataStruct->Gz * dt;
+    }
     // DataStruct->DisplacementY = displacementCalculator.displacementY;
 }
 
@@ -433,7 +438,7 @@ void DisplacementCalculator_Update(DisplacementCalculator_t *calculator, float a
     // 首先，补偿俯仰和翻滚对加速度的影响
     accX_real = accX - accelCalibration.g_real * sin(pitch_rad);
     // float accY_noRollPitch = accX * sin(roll_rad) * sin(pitch_rad) + accY * cos(roll_rad) - accZ * sin(roll_rad) * cos(pitch_rad);
-    
+
     // 低通滤波去除高频噪声
     // calculator->accXFiltered = alpha * calculator->accXFiltered + (1.0f - alpha) * accX_world;
     // calculator->accYFiltered = alpha * calculator->accYFiltered + (1.0f - alpha) * accY_world;

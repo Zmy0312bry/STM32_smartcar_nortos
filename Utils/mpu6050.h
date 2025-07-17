@@ -4,14 +4,15 @@
  *  Created on: Nov 13, 2019
  *      Author: Bulanov Konstantin
  */
+#include "i2c.h"
 
 #ifndef INC_GY521_H_
 #define INC_GY521_H_
 
-#endif /* INC_GY521_H_ */
+
 
 #include <stdint.h>
-#include "i2c.h"
+
 
 
 
@@ -45,6 +46,8 @@ typedef struct
     // 添加位移相关数据
     float DisplacementX; // X轴位移
     float DisplacementY; // Y轴位移
+
+    float Yaw_Custom; // 自定义偏航角
 
 } MPU6050_t;
 
@@ -121,3 +124,5 @@ void DisplacementCalculator_Init(DisplacementCalculator_t *calculator, float noi
 // 更新DisplacementCalculator_Update函数声明
 void DisplacementCalculator_Update(DisplacementCalculator_t *calculator, float accX, float accY, float accZ, float roll, float pitch, float yaw);
 void DisplacementCalculator_Reset(DisplacementCalculator_t *calculator);
+
+#endif /* INC_GY521_H_ */

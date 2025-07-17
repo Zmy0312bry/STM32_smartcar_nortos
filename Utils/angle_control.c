@@ -88,11 +88,11 @@ void AngleControl_SetSensitivity(float yaw_sensitivity)
 void AngleControl_Reset(void)
 {
     /* 重置目标角度为当前角度 */
-    angle_control.target_yaw = Yaw;
-    angle_control.current_yaw = Yaw;
+    angle_control.target_yaw = MPU6050.Yaw_Custom;
+    angle_control.current_yaw = MPU6050.Yaw_Custom;
     
     /* 更新PID目标值 */
-    AnglePID_SetTarget(Yaw);
+    AnglePID_SetTarget(MPU6050.Yaw_Custom);
     
     /* 重置PID状态 */
     AnglePID_Reset();
@@ -105,7 +105,7 @@ void AngleControl_Reset(void)
 AngleControl_TypeDef* AngleControl_GetStatus(void)
 {
     /* 更新当前角度 */
-    angle_control.current_yaw = Yaw;
+    angle_control.current_yaw = MPU6050.Yaw_Custom;
     return &angle_control;
 }
 
@@ -144,7 +144,7 @@ uint8_t AngleControl_IsTargetReached(float tolerance)
 {
     if (!angle_control.enabled) return 0;
     
-    float angle_error = fabsf(angle_control.target_yaw - Yaw);
+    float angle_error = fabsf(angle_control.target_yaw - MPU6050.Yaw_Custom);
     
     /* 处理角度环绕问题 */
     if (angle_error > 180.0f) {

@@ -36,6 +36,8 @@
 #include <string.h>
 #include "jy61p.h"
 #include "icm42688.h"
+#include "mpu6050.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,7 +58,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+MPU6050_t MPU6050 = {0};
 /* The variables about GRYO is declared here */
 
 volatile uint8_t gyro_sample = 0; // How many seconds to read data
@@ -76,8 +78,8 @@ volatile uint8_t encoder_sample = 0; // How many seconds to read encoder data
 
 /* This is the declaration of the variables of angle PID control*/
 volatile uint8_t angle_pid_sample = 0; // How many ms to update angle PID
-icm42688RealData_t accval;
-icm42688RealData_t gyroval;
+//icm42688RealData_t accval;
+//icm42688RealData_t gyroval;
 /* This is the end of declaration to the angle PID*/
 
 /* This is the sapce for you to declare temp variables */
@@ -159,7 +161,9 @@ int main(void)
                                       /* Finish init Yaw Angle PID control */
 
   /* This is the init for icm42688 */
-  bsp_Icm42688Init();
+  // bsp_Icm42688Init();
+  HAL_Delay(100);
+  while (MPU6050_Init(&hi2c1) == 1);
   /* This is the end */
 
   /* USER CODE END 2 */
@@ -173,10 +177,11 @@ int main(void)
     /* This is the end */
 
     /* This is the call to the gyroscope code function */
-    if (gyro_sample >= 99) // This means that the gyroscope data is read every 100ms
+    if (gyro_sample >= 49) // This means that the gyroscope data is read every 100ms
     {
-      bsp_IcmGetRawData(&accval, &gyroval);
-      printf("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", accval.x, accval.y, accval.z, gyroval.x, gyroval.y, gyroval.z);
+      MPU6050_Read_All(&hi2c1, &MPU6050);
+      // bsp_IcmGetRawData(&accval, &gyroval);
+      // printf("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", accval.x, accval.y, accval.z, gyroval.x, gyroval.y, gyroval.z);
       gyro_sample = 0; // Reset the sample counter
     }
 
@@ -206,18 +211,18 @@ int main(void)
 
     /* This is the function to print encoder data */
 
-    // if (encoder_sample >= 69)
-    // {
+    if (encoder_sample >= 69)
+    {
 
-    //   AnglePID_Update();
-    //   Encoder_Update(&encoderA, 70); // Put into the sample time(ms)
-    //   Encoder_Update(&encoderB, 70);
-    //   printf("EncoderA:%.2f,", encoderA.speed_rpm);
-    //   printf("EncoderB:%.2f,", encoderB.speed_rpm);
-    //   printf("Yaw:%.2f,Target:%.2f,", Yaw, angle_pid_yaw.setpoint);
-    //   printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
-    //   encoder_sample = 0; // Reset the sample counter
-    // }
+      AnglePID_Update(MPU6050.Yaw_Custom);
+      Encoder_Update(&encoderA, 70); // Put into the sample time(ms)
+      Encoder_Update(&encoderB, 70);
+      printf("EncoderA:%.2f,", encoderA.speed_rpm);
+      printf("EncoderB:%.2f,", encoderB.speed_rpm);
+      printf("Yaw:%.2f,Target:%.2f,", MPU6050.Yaw_Custom, angle_pid_yaw.setpoint);
+      printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
+      encoder_sample = 0; // Reset the sample counter
+    }
 
     /* This is the end of encoder print function */
 
