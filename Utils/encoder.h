@@ -29,7 +29,7 @@ extern "C"
         int16_t last_count;      // 上一次编码器计数值
         int16_t diff;            // 两次计数差值
         float speed_rpm;         // 电机转速(RPM)
-        float speed_rps;         // 电机转速(RPS)
+        float speed_rpp;         // 编码器格数(RPP)
         uint8_t direction;       // 旋转方向: 0-正转, 1-反转
         Encoder_ID id;           // 编码器ID: 0-ENCODER_A, 1-ENCODER_B
         TIM_HandleTypeDef *htim; // 定时器句柄

@@ -155,16 +155,17 @@ int main(void)
   PID_Init(&pid_motor_b);
   /* Finish init PID control */
 
-  /* Init the Yaw Angle PID control here */
-  AngleControl_Init();
-  AngleControl_SelfTurnTarget(90.0f); // Set initial target angle for Yaw
-                                      /* Finish init Yaw Angle PID control */
-
   /* This is the init for icm42688 */
-  // bsp_Icm42688Init();
-  HAL_Delay(100);
-  while (MPU6050_Init(&hi2c1) == 1);
+  // HAL_Delay(500); // Wait for the sensor to stabilize
+  // while (MPU6050_Init(&hi2c1) == 1);
   /* This is the end */
+
+  /* Init the Yaw Angle PID control here */
+  //AngleControl_Init();
+  // SelfTurnTarget(90.0f); // Set initial target angle for Yaw
+  PID_SetSpeed(PID_MOTOR_A, 60.0f); // Initialize motor A speed to 0
+  PID_SetSpeed(PID_MOTOR_B, 60.0f); // Initialize motor
+  /* Finish init Yaw Angle PID control */
 
   /* USER CODE END 2 */
 
@@ -173,15 +174,12 @@ int main(void)
   while (1)
   {
     /* This is the space for you to declare temp variables */
-    int times = 2;
     /* This is the end */
 
     /* This is the call to the gyroscope code function */
-    if (gyro_sample >= 49) // This means that the gyroscope data is read every 100ms
+    if (gyro_sample >= 69) // This means that the gyroscope data is read every 100ms
     {
-      MPU6050_Read_All(&hi2c1, &MPU6050);
-      // bsp_IcmGetRawData(&accval, &gyroval);
-      // printf("%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\r\n", accval.x, accval.y, accval.z, gyroval.x, gyroval.y, gyroval.z);
+      //MPU6050_Read_All(&hi2c1, &MPU6050);
       gyro_sample = 0; // Reset the sample counter
     }
 
@@ -214,13 +212,20 @@ int main(void)
     if (encoder_sample >= 69)
     {
 
-      AnglePID_Update(MPU6050.Yaw_Custom);
+      //AnglePID_Update();
       Encoder_Update(&encoderA, 70); // Put into the sample time(ms)
       Encoder_Update(&encoderB, 70);
-      printf("EncoderA:%.2f,", encoderA.speed_rpm);
-      printf("EncoderB:%.2f,", encoderB.speed_rpm);
-      printf("Yaw:%.2f,Target:%.2f,", MPU6050.Yaw_Custom, angle_pid_yaw.setpoint);
-      printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
+      PID_Update();
+      printf("EncoderA:%.2f,", encoderA.speed_rpp);
+      printf("EncoderB:%.2f,", encoderB.speed_rpp);
+      printf("EncoderA_rpm:%.2f,", encoderA.speed_rpm);
+      printf("EncoderB_rpm:%.2f,", encoderB.speed_rpm);
+      printf("targetA:%.2f,", pid_motor_a.setpoint);
+      printf("targetB:%.2f,", pid_motor_b.setpoint);
+      printf("PID_A:%.2f,", pid_motor_a.output);
+      printf("PID_B:%.2f\r\n", pid_motor_b.output);
+      //printf("Yaw:%.2f,integral:%.2f,", MPU6050.Yaw_Custom, angle_pid_yaw.integral);
+      //printf("PID_Out:%.2f\r\n", angle_pid_yaw.final_output);
       encoder_sample = 0; // Reset the sample counter
     }
 
@@ -294,11 +299,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
       optical_flow_sample = 0;
     }
-    if (gyro_sample < 99)
+    if (gyro_sample < 79)
     {
       gyro_sample++;
     }
-    if (encoder_sample < 99)
+    if (encoder_sample < 79)
     {
       encoder_sample++;
     }
@@ -307,10 +312,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       angle_pid_sample++;
     }
     /* This is the space for your temp variables */
-    if (pid_temp < 15000)
-    {
-      pid_temp++;
-    }
     /* End of temp */
   }
 }

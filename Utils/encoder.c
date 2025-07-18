@@ -21,7 +21,7 @@ void Encoder_Init(void)
     encoderA.last_count = 0;
     encoderA.diff = 0;
     encoderA.speed_rpm = 0.0f;
-    encoderA.speed_rps = 0.0f;
+    encoderA.speed_rpp = 0.0f;
     encoderA.direction = 0;
     encoderA.id = ENCODER_A;
     encoderA.htim = &htim3;
@@ -33,7 +33,7 @@ void Encoder_Init(void)
     encoderB.last_count = 0;
     encoderB.diff = 0;
     encoderB.speed_rpm = 0.0f;
-    encoderB.speed_rps = 0.0f;
+    encoderB.speed_rpp = 0.0f;
     encoderB.direction = 0;
     encoderB.id = ENCODER_B;
     encoderB.htim = &htim1;
@@ -114,6 +114,6 @@ void Encoder_Update(Encoder_TypeDef *encoder, uint32_t sample_time_ms)
     encoder->speed_rpm = (float)encoder->diff * 60.0f * 1000.0f /
                          (encoder->resolution * encoder->gear_ratio * sample_time_ms);
 
-    // 计算RPS (RPM / 60)，同样保持符号
-    encoder->speed_rps = encoder->speed_rpm / 60.0f;
+    // 计算RPP()自定义每秒
+    encoder->speed_rpp = (float)encoder->diff * 1000.0f /sample_time_ms;
 }

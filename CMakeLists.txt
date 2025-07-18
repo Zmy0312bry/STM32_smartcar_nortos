@@ -18,6 +18,7 @@ add_compile_options(
     -Wno-type-limits
     -Wno-empty-body
     -Wno-sign-compare
+    # -O3
 )
 if(UNIX AND NOT APPLE)
     add_compile_options(-I/usr/arm-none-eabi/include)
